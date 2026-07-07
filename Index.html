@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUDO ROYALE — Team Betting Parlor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #131214; /* Dark Board Base */
+    --fg: #f4f1ea; /* Ivory Dice */
+    --muted: #8a848e;
+    --accent: #f5c518; /* Ludo Yellow */
+    --accent-2: #2ec973; /* Ludo Green */
+    --info: #3b82f6; /* Ludo Blue */
+    --danger: #ef4444; /* Ludo Red */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  .font-display { font-family: 'Anton', sans-serif; letter-spacing: 0.02em; }
+  .bg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .bg-gradient {
+    background:
+      radial-gradient(ellipse 900px 700px at 12% 8%, rgba(245,197,24,0.12), transparent 60%),
+      radial-gradient(ellipse 700px 600px at 88% 92%, rgba(46,201,115,0.1), transparent 60%),
+      linear-gradient(180deg, #131214 0%, #1a1a1c 50%, #131214 100%);
+  }
+  .grid-bg { 
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), 
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px); 
+    background-size: 60px 60px; 
+  }
+  .glass { background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015)); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .glass-strong { background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+  
+  .btn-primary { background: linear-gradient(135deg, #f5c518 0%, #d4a40e 100%); color: #131214; font-weight: 700; border: none; padding: 13px 26px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-family: inherit; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245,197,24,0.35); }
+  .btn-ghost { background: transparent; color: var(--fg); border: 1px solid rgba(255,255,255,0.15); padding: 11px 22px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; font-family: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
+  .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; border: none; padding: 11px 22px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; font-family: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .btn-success { background: linear-gradient(135deg, #2ec973 0%, #1ea058 100%); color: #06120a; border: none; padding: 11px 22px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; font-family: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+  .input { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); color: var(--fg); padding: 13px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; width: 100%; outline: none; transition: all 0.2s ease; }
+  .input:focus { border-color: var(--accent); background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(245,197,24,0.15); }
+  .input::placeholder { color: rgba(255,255,255,0.3); }
+  
+  @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(46,201,115,0.5); } 50% { box-shadow: 0 0 0 10px rgba(46,201,115,0); } }
+  @keyframes float-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: float-up 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes slide-in-right { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes scale-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+  .modal-content { animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  
+  .confetti { position: fixed; width: 10px; height: 14px; pointer-events: none; z-index: 100; animation: confetti-fall 2.5s linear forwards; }
+  @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+  .ludo-card {
+    position: relative;
+    aspect-ratio: 5/7;
+    border-radius: 18px;
+    background: linear-gradient(160deg, #1c1c1e 0%, #131214 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ludo-card:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+  .ludo-card .center-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 120px; line-height: 1; opacity: 0.15; }
+  .ludo-card.master .center-icon { color: var(--danger); }
+  .ludo-card.player .center-icon { color: var(--info); }
+  
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+  .status-active { background: rgba(46,201,115,0.15); color: #2ec973; border: 1px solid rgba(46,201,115,0.3); }
+  .status-closed { background: rgba(245,197,24,0.15); color: #f5c518; border: 1px solid rgba(245,197,24,0.3); }
+  .status-resolved { background: rgba(138,148,142,0.15); color: #8a948e; border: 1px solid rgba(138,148,142,0.3); }
+  
+  .option-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; transition: all 0.2s ease; cursor: pointer; }
+  .option-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
+  .option-card.bet-placed { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.4); }
+  .option-card.winner { background: rgba(46,201,115,0.1); border-color: rgba(46,201,115,0.5); }
+  .option-card.loser { background: rgba(239,68,68,0.05); border-color: rgba(239,68,68,0.2); opacity: 0.7; }
+  
+  .progress-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f5c518, #2ec973, #3b82f6); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+  
+  .tab-btn { padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); transition: all 0.2s ease; background: transparent; border: 1px solid transparent; font-family: inherit; }
+  .tab-btn:hover { color: var(--fg); }
+  .tab-btn.active { color: var(--fg); background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+  
+  .toast { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1); transition: all 0.3s ease; }
+  .live-dot { width: 6px; height: 6px; background: #2ec973; border-radius: 50%; box-shadow: 0 0 8px #2ec973; animation: pulse-glow 1.5s infinite; display: inline-block; }
+  .stat-num { font-family: 'Anton', sans-serif; font-size: 42px; line-height: 1; letter-spacing: 0.02em; }
+</style>
+</head>
+<body>
+
+<div class="bg-layer bg-gradient"></div>
+<div class="bg-layer grid-bg" style="opacity:0.4;"></div>
+<canvas id="bg-canvas" class="bg-layer"></canvas>
+
+<div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3 max-w-sm"></div>
+<div id="modal-container"></div>
+
+<main id="app" class="relative z-10">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#6b8472;font-size:14px;">Rolling the dice...</div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
+
+<script>
+// ==========================================
+// YOUR REAL FIREBASE CONFIG
+// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyD-EifxAwEqHTUhhJ5uEc5mBYw8p_2vWGs",
+  authDomain: "bets-44374.firebaseapp.com",
+  databaseURL: "https://bets-44374-default-rtdb.firebaseio.com",
+  projectId: "bets-44374",
+  storageBucket: "bets-44374.firebasestorage.app",
+  messagingSenderId: "717769775802",
+  appId: "1:717769775802:web:07a0203dc3ee9ec88e0083",
+  measurementId: "G-PSY955KM7P"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ============== STATE ==============
+var STORE = {
+  view: 'landing',
+  currentUser: null,
+  adminPassword: 'admin123',
+  users: [],
+  questions: [],
+  adminTab: 'active',
+  userTab: 'active',
+  dbConnected: false,
+  errorMessage: ''
+};
+
+// ============== UTILITIES ==============
+function uid() { return Math.random().toString(36).slice(2, 11); }
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function simpleHash(str) {
+  var hash = 0;
+  if (str.length == 0) return hash;
+  for (var i = 0; i < str.length; i++) {
+    var char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return 'h_' + hash;
+}
+
+function formatTime(ts) {
+  if (!ts) return '—';
+  var diff = Date.now() - ts;
+  var mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs / 24) + 'd ago';
+}
+
+function formatPoints(p) {
+  if (p === undefined || p === null) return '0';
+  if (p % 1 === 0) return p.toString();
+  return parseFloat(p.toFixed(2)).toString();
+}
+
+function getStake(q) {
+  return q.stakeAmount || 3;
+}
+
+function getPayout(q) {
+  if (!q.winnerOptionId || !q.bets) return 0;
+  var bets = Object.values(q.bets);
+  var winningBets = bets.filter(function(b){return b.optionId === q.winnerOptionId;}).length;
+  if (winningBets === 0) return 0;
+  // Sum up actual amounts staked to form the pot
+  var totalPot = bets.reduce(function(sum, b) { return sum + b.amount; }, 0);
+  var payout = totalPot / winningBets;
+  return Math.round(payout * 100) / 100;
+}
+
+function toast(message, type) {
+  type = type || 'info';
+  var container = document.getElementById('toast-container');
+  var el = document.createElement('div');
+  var borders = { success: 'rgba(46,201,115,0.4)', error: 'rgba(239,68,68,0.4)', info: 'rgba(245,197,24,0.4)' };
+  var bgs = { success: 'rgba(46,201,115,0.08)', error: 'rgba(239,68,68,0.08)', info: 'rgba(245,197,24,0.08)' };
+  var icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+  var colors = { success: '#2ec973', error: '#ef4444', info: '#f5c518' };
+  el.className = 'toast glass-strong rounded-xl px-4 py-3 flex items-center gap-3 min-w-[280px]';
+  el.style.borderColor = borders[type];
+  el.style.background = bgs[type];
+  el.innerHTML = '<i class="fa-solid ' + icons[type] + '" style="color:' + colors[type] + ';font-size:16px;"></i><span class="text-sm flex-1">' + esc(message) + '</span>';
+  container.appendChild(el);
+  setTimeout(function() {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(40px)';
+    setTimeout(function() { el.remove(); }, 300);
+  }, 3500);
+}
+
+function showModal(html) {
+  document.getElementById('modal-container').innerHTML =
+    '<div class="fixed inset-0 z-50 flex items-center justify-center p-4">' +
+    '<div class="absolute inset-0 bg-black/75 backdrop-blur-md" onclick="closeModal()"></div>' +
+    '<div class="relative glass-strong rounded-2xl p-6 w-full max-w-md modal-content max-h-[90vh] overflow-y-auto">' + html + '</div>' +
+    '</div>';
+}
+
+function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+
+function confetti() {
+  var colors = ['#ef4444', '#f5c518', '#2ec973', '#3b82f6', '#ffffff'];
+  for (var i = 0; i < 60; i++) {
+    var el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDelay = Math.random() * 0.5 + 's';
+    el.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+    document.body.appendChild(el);
+    setTimeout(function(e) { e.remove(); }, 3500, el);
+  }
+}
+
+// ============== EXPLICIT DB CONNECTION TEST ==============
+db.ref('users').get().then(function(snap) {
+  STORE.dbConnected = true;
+  STORE.users = snap.exists() ? Object.values(snap.val()) : [];
+  return db.ref('questions').get();
+}).then(function(snap) {
+  var data = snap.exists() ? snap.val() : {};
+  STORE.questions = Object.values(data).sort(function(a, b) { return b.createdAt - a.createdAt; });
+  paint();
+  
+  db.ref('users').on('value', function(s) {
+    STORE.users = s.exists() ? Object.values(s.val()) : [];
+    if (STORE.currentUser) {
+      var u = STORE.users.find(function(x) { return x.id === STORE.currentUser.id; });
+      if (u) STORE.currentUser.points = u.points;
+    }
+    paint();
+  });
+  
+  db.ref('questions').on('value', function(s) {
+    var d = s.exists() ? s.val() : {};
+    STORE.questions = Object.values(d).sort(function(a, b) { return b.createdAt - a.createdAt; });
+    paint();
+  });
+  
+}).catch(function(err) {
+  STORE.view = 'connection-error';
+  STORE.errorMessage = err.message || 'Permission Denied';
+  paint();
+});
+
+// ============== AUTH ==============
+window.loginAdmin = function(password) {
+  if (password === STORE.adminPassword) {
+    sessionStorage.setItem('role', 'admin');
+    STORE.view = 'admin';
+    paint();
+    toast('Welcome to the throne, Game Master.', 'success');
+  } else {
+    toast('Wrong Game Master password.', 'error');
+  }
+}
+
+window.loginUser = function(username, password) {
+  var u = STORE.users.find(function(x) { return x.name.toLowerCase() === username.trim().toLowerCase(); });
+  if (!u) { toast('Player not found. Ask Game Master to sign you.', 'error'); return; }
+  if (u.password !== simpleHash(password)) { toast('Incorrect password.', 'error'); return; }
+  
+  sessionStorage.setItem('role', 'user');
+  sessionStorage.setItem('uid', u.id);
+  STORE.currentUser = u;
+  STORE.view = 'user';
+  paint();
+  toast('Ready to roll, ' + u.name + '.', 'success');
+}
+
+window.logout = function() {
+  sessionStorage.removeItem('role');
+  sessionStorage.removeItem('uid');
+  STORE.currentUser = null;
+  STORE.view = 'landing';
+  paint();
+}
+
+// ============== ADMIN ACTIONS ==============
+window.createPlayer = function(username, password) {
+  if (!username || username.trim().length < 2) { toast('Username must be at least 2 characters.', 'error'); return; }
+  if (!password || password.length < 3) { toast('Password must be at least 3 characters.', 'error'); return; }
+  if (STORE.users.find(function(u) { return u.name.toLowerCase() === username.trim().toLowerCase(); })) { toast('Username already exists.', 'error'); return; }
+  
+  var id = uid();
+  db.ref('users/' + id).set({
+    id: id,
+    name: username.trim(),
+    password: simpleHash(password),
+    points: 100,
+    joinedAt: Date.now()
+  });
+  toast('Player added to the board.', 'success');
+  closeModal();
+}
+
+window.deletePlayer = function(userId) {
+  db.ref('users/' + userId).remove();
+  toast('Player removed.', 'info');
+  closeModal();
+}
+
+window.adjustPoints = function(userId, delta) {
+  var u = STORE.users.find(function(x) { return x.id === userId; });
+  if (!u) return;
+  var newPoints = Math.max(0, u.points + parseFloat(delta));
+  db.ref('users/' + userId).update({ points: newPoints });
+  toast('Points updated.', 'success');
+  closeModal();
+}
+
+window.createQuestion = function(title, desc, options, stakeAmount) {
+  if (!title.trim()) { toast('Game title is required.', 'error'); return; }
+  var cleanOptions = options.filter(function(o) { return o.trim().length > 0; });
+  if (cleanOptions.length < 2) { toast('Add at least 2 options.', 'error'); return; }
+
+  var stake = parseFloat(stakeAmount) || 3;
+  if (stake < 1) { toast('Stake must be at least 1 token.', 'error'); return; }
+
+  var optsArray = cleanOptions.map(function(o) { return { id: uid(), text: o.trim() }; });
+  var qId = uid();
+  
+  db.ref('questions/' + qId).set({
+    id: qId,
+    title: title.trim(),
+    description: desc.trim(),
+    options: optsArray,
+    status: 'active',
+    winnerOptionId: null,
+    stakeAmount: stake,
+    createdAt: Date.now(),
+    closedAt: null,
+    resolvedAt: null,
+    bets: {}
+  });
+  toast('Game posted live.', 'success');
+  closeModal();
+}
+
+window.updateStake = function(questionId, newStake) {
+  var stake = parseFloat(newStake) || 3;
+  if (stake < 1) { toast('Stake must be at least 1 token.', 'error'); return; }
+  db.ref('questions/' + questionId).update({ stakeAmount: stake });
+  toast('Entry stake updated to ' + stake + ' tokens.', 'success');
+  closeModal();
+}
+
+window.placeBet = function(questionId, optionId) {
+  var q = STORE.questions.find(function(x) { return x.id === questionId; });
+  if (!q || q.status !== 'active') { toast('Betting is closed.', 'error'); return; }
+  
+  var stake = getStake(q);
+  if (STORE.currentUser.points < stake) { toast('Not enough tokens. You need ' + stake + '.', 'error'); return; }
+
+  var existing = q.bets ? Object.values(q.bets).find(function(b) { return b.userId === STORE.currentUser.id; }) : null;
+  if (existing) { toast('You already bet on this.', 'error'); return; }
+
+  var newPoints = STORE.currentUser.points - stake;
+  db.ref('users/' + STORE.currentUser.id).update({ points: newPoints });
+
+  var betId = uid();
+  db.ref('questions/' + questionId + '/bets/' + betId).set({
+    id: betId,
+    userId: STORE.currentUser.id,
+    userName: STORE.currentUser.name,
+    optionId: optionId,
+    amount: stake, // Record exact amount staked
+    timestamp: Date.now()
+  });
+  
+  toast('Bet placed! ' + stake + ' tokens staked.', 'success');
+  closeModal();
+}
+
+window.closeBetting = function(questionId) {
+  db.ref('questions/' + questionId).update({ status: 'closed', closedAt: Date.now() });
+  toast('Betting closed.', 'info');
+}
+
+window.reopenBetting = function(questionId) {
+  db.ref('questions/' + questionId).update({ status: 'active', closedAt: null });
+  toast('Betting reopened.', 'info');
+}
+
+window.declareWinner = function(questionId, optionId) {
+  var q = STORE.questions.find(function(x) { return x.id === questionId; });
+  if (!q) return;
+
+  var updates = {};
+  var bets = q.bets ? Object.values(q.bets) : [];
+  // Calculate total pot dynamically based on what each player actually paid
+  var totalPot = bets.reduce(function(sum, b) { return sum + b.amount; }, 0);
+  var winningBets = bets.filter(function(b) { return b.optionId === optionId; });
+
+  var myPayout = 0;
+
+  if (winningBets.length > 0) {
+    var payout = Math.round((totalPot / winningBets.length) * 100) / 100;
+    
+    winningBets.forEach(function(bet) {
+      var user = STORE.users.find(function(u) { return u.id === bet.userId; });
+      if (user) {
+        updates['users/' + user.id + '/points'] = Math.round((user.points + payout) * 100) / 100;
+      }
+    });
+
+    if (STORE.currentUser) {
+      var myBet = winningBets.find(function(b) { return b.userId === STORE.currentUser.id; });
+      if (myBet) myPayout = payout;
+    }
+  } else {
+    // No winners, pot goes to Admin House account
+    db.ref('users/admin_house/points').transaction(function(current) {
+      return Math.round(((current || 0) + totalPot) * 100) / 100;
+    });
+    db.ref('users/admin_house').update({ id: 'admin_house', name: 'The House', isHouse: true });
+  }
+
+  updates['questions/' + questionId + '/status'] = 'resolved';
+  updates['questions/' + questionId + '/winnerOptionId'] = optionId;
+  updates['questions/' + questionId + '/resolvedAt'] = Date.now();
+
+  db.ref().update(updates);
+
+  if (STORE.currentUser && STORE.view === 'user') {
+    if (myPayout > 0) {
+      if (myPayout === getStake(q) && winningBets.length === bets.length) {
+        toast('All players won. Stake returned.', 'info');
+      } else {
+        confetti();
+        toast('WINNER! You won +' + formatPoints(myPayout) + ' tokens.', 'success');
+      }
+    } else if (bets.some(function(b) { return b.userId === STORE.currentUser.id; })) {
+      toast('You lost this roll.', 'error');
+    }
+  } else {
+    if (winningBets.length === 0 && totalPot > 0) {
+      toast('No winners. Pot goes to the House.', 'info');
+    } else if (winningBets.length === bets.length) {
+      toast('All players won. Stakes returned.', 'info');
+    } else {
+      toast('Game over. Winner declared.', 'success');
+    }
+  }
+  closeModal();
+}
+
+window.deleteQuestion = function(questionId) {
+  db.ref('questions/' + questionId).remove();
+  toast('Game removed.', 'info');
+  closeModal();
+}
+
+// ============== NAVIGATION ==============
+window.goTo = function(view) { STORE.view = view; paint(); }
+window.setAdminTab = function(tab) { STORE.adminTab = tab; paint(); }
+window.setUserTab = function(tab) { STORE.userTab = tab; paint(); }
+
+// ============== MODALS ==============
+window.openCreateQuestion = function() {
+  showModal(
+    '<div class="mb-5"><div class="text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] mb-1">New Game</div><h3 class="font-display text-3xl">POST A BET</h3></div>' +
+    '<form onsubmit="event.preventDefault(); submitCreateQuestion(this);" class="space-y-4">' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Game Title *</label><input type="text" name="title" class="input" placeholder="e.g. Who rolls a 6 first?" maxlength="120" required></div>' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Description (optional)</label><textarea name="description" class="input" rows="2" placeholder="Add context, rules, etc." maxlength="300"></textarea></div>' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Entry Stake (Tokens) *</label><input type="number" name="stake" class="input" placeholder="e.g. 3" min="1" step="1" value="3" required></div>' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Options (min 2)</label><div id="options-list" class="space-y-2"><div class="flex gap-2"><input type="text" class="input opt-input" placeholder="Option 1 (e.g. Red Player)" maxlength="60"><button type="button" onclick="removeOption(this)" class="btn-ghost px-3"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2"><input type="text" class="input opt-input" placeholder="Option 2 (e.g. Blue Player)" maxlength="60"><button type="button" onclick="removeOption(this)" class="btn-ghost px-3"><i class="fa-solid fa-xmark"></i></button></div></div><button type="button" onclick="addOption()" class="btn-ghost mt-2 text-xs"><i class="fa-solid fa-plus mr-2"></i>Add Option</button></div>' +
+      '<div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="btn-ghost flex-1">Cancel</button><button type="submit" class="btn-primary flex-1">Post Live</button></div>' +
+    '</form>'
+  );
+}
+window.addOption = function() {
+  var list = document.getElementById('options-list');
+  var count = list.children.length + 1;
+  var row = document.createElement('div');
+  row.className = 'flex gap-2';
+  row.innerHTML = '<input type="text" class="input opt-input" placeholder="Option ' + count + '" maxlength="60"><button type="button" onclick="removeOption(this)" class="btn-ghost px-3"><i class="fa-solid fa-xmark"></i></button>';
+  list.appendChild(row);
+}
+window.removeOption = function(btn) {
+  var list = document.getElementById('options-list');
+  if (list.children.length > 2) { btn.parentElement.remove(); } else { toast('Need at least 2 options.', 'error'); }
+}
+window.submitCreateQuestion = function(form) {
+  var title = form.title.value;
+  var description = form.description.value;
+  var stake = form.stake.value;
+  var options = [];
+  form.querySelectorAll('.opt-input').forEach(function(i) { options.push(i.value); });
+  createQuestion(title, description, options, stake);
+}
+
+window.openAddPlayer = function() {
+  showModal(
+    '<div class="mb-5"><div class="text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] mb-1">Roster Management</div><h3 class="font-display text-3xl">ADD PLAYER</h3></div>' +
+    '<form onsubmit="event.preventDefault(); createPlayer(this.username.value, this.password.value);" class="space-y-4">' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Username</label><input type="text" name="username" class="input" placeholder="e.g. JohnDoe" required></div>' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Temporary Password</label><input type="text" name="password" class="input" placeholder="Min 3 characters" required></div>' +
+      '<div class="text-xs text-[var(--muted)]">Player starts with 100 tokens.</div>' +
+      '<div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="btn-ghost flex-1">Cancel</button><button type="submit" class="btn-primary flex-1">Add Player</button></div>' +
+    '</form>'
+  );
+}
+
+window.openAdjustPoints = function(userId) {
+  var u = STORE.users.find(function(x) { return x.id === userId; });
+  if (!u) return;
+  showModal(
+    '<div class="mb-5"><div class="text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] mb-1">Roster Management</div><h3 class="font-display text-3xl">ADJUST TOKENS</h3></div>' +
+    '<p class="text-sm text-[var(--muted)] mb-4">' + esc(u.name) + ' currently has <span class="text-[var(--accent)] font-bold">' + formatPoints(u.points) + '</span> tokens.</p>' +
+    '<form onsubmit="event.preventDefault(); adjustPoints(\'' + userId + '\', this.delta.value);" class="space-y-4">' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Add or Remove Tokens</label><input type="number" step="any" name="delta" class="input" placeholder="e.g. 50 or -20" required></div>' +
+      '<div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="btn-ghost flex-1">Cancel</button><button type="submit" class="btn-primary flex-1">Update</button></div>' +
+    '</form>'
+  );
+}
+
+window.openUpdateStake = function(questionId) {
+  var q = STORE.questions.find(function(x) { return x.id === questionId; });
+  if (!q) return;
+  var currentStake = getStake(q);
+  showModal(
+    '<div class="mb-5"><div class="text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] mb-1">Game Settings</div><h3 class="font-display text-3xl">UPDATE STAKE</h3></div>' +
+    '<p class="text-sm text-[var(--muted)] mb-4">Current stake is <span class="text-[var(--accent)] font-bold">' + currentStake + ' tokens</span>. Changing this will only affect future bets.</p>' +
+    '<form onsubmit="event.preventDefault(); updateStake(\'' + questionId + '\', this.stake.value);" class="space-y-4">' +
+      '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">New Stake Amount</label><input type="number" name="stake" class="input" placeholder="e.g. 5" min="1" step="1" value="' + currentStake + '" required></div>' +
+      '<div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="btn-ghost flex-1">Cancel</button><button type="submit" class="btn-primary flex-1">Update</button></div>' +
+    '</form>'
+  );
+}
+
+window.confirmDeletePlayer = function(userId) {
+  var u = STORE.users.find(function(x) { return x.id === userId; });
+  if (!u) return;
+  showModal(
+    '<div class="text-center mb-5"><div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--danger)]/10 border border-[var(--danger)]/30 flex items-center justify-center"><i class="fa-solid fa-trash text-2xl text-[var(--danger)]"></i></div><h3 class="font-display text-2xl mb-2">REMOVE PLAYER?</h3><p class="text-sm text-[var(--muted)]">Remove ' + esc(u.name) + ' from the roster. This cannot be undone.</p></div>' +
+    '<div class="flex gap-3"><button onclick="closeModal()" class="btn-ghost flex-1">Cancel</button><button onclick="deletePlayer(\'' + userId + '\')" class="btn-danger flex-1">Remove</button></div>'
+  );
+}
+
+window.openDeclareWinner = function(questionId) {
+  var q = STORE.questions.find(function(x) { return x.id === questionId; });
+  if (!q) return;
+  var optionsHtml = '';
+  q.options.forEach(function(opt) {
+    var bets = q.bets ? Object.values(q.bets).filter(function(b){return b.optionId===opt.id;}) : [];
+    optionsHtml += '<button onclick="confirmDeclare(\'' + q.id + '\',\'' + opt.id + '\')" class="w-full text-left p-4 rounded-xl glass hover:bg-white/5 transition border border-transparent hover:border-[var(--accent)]/30"><div class="flex items-center justify-between mb-1"><span class="font-semibold">' + esc(opt.text) + '</span><i class="fa-solid fa-crown text-[var(--accent)] opacity-50"></i></div><div class="text-xs text-[var(--muted)]">' + bets.length + ' bet' + (bets.length!==1?'s':'') + '</div></button>';
+  });
+  showModal(
+    '<div class="mb-5"><div class="text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] mb-1">Game Over</div><h3 class="font-display text-3xl">DECLARE WINNER</h3></div>' +
+    '<p class="text-sm text-[var(--muted)] mb-5">' + esc(q.title) + '</p>' +
+    '<div class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-3">Winning option</div>' +
+    '<div class="space-y-2 mb-5">' + optionsHtml + '</div>' +
+    '<button onclick="closeModal()" class="btn-ghost w-full">Cancel</button>'
+  );
+}
+
+window.confirmDeclare = function(questionId, optionId) {
+  var q = STORE.questions.find(function(x) { return x.id === questionId; });
+  if (!q) return;
+  var opt = q.options.find(function(o) { return o.id === optionId; });
+  if (!opt) return;
+  var winners = q.bets ? Object.values(q.bets).filter(function(b){return b.optionId===optionId;}).length : 0;
+  showModal(
+    '<div class="text-center mb-5"><div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/30 flex items-center justify-center"><i class="fa-solid fa-crown text-2xl text-[var(--accent)]"></i></div><h3 class="font-display text-2xl mb-2">CONFIRM RESULT</h3><p class="text-sm text-[var(--muted)]">You are declaring <strong class="text-[var(--fg)]">' + esc(opt.text) + '</strong> as the winner.</p><p class="text-xs text-[var(--muted)] mt-2">' + winners + ' player' + (winners!==1?'s':'') + ' will split the pot.' + (winners === 0 ? ' Pot goes to the House.' : '') + '</p></div>' +
+    '<div class="flex gap-3"><button onclick="closeModal(); openDeclareWinner(\'' + questionId + '\');" class="btn-ghost flex-1">Back</button><button onclick="declareWinner(\'' + questionId + '\',\'' + optionId + '\');" class="btn-success flex-1">Confirm</button></div>'
+  );
+}
+
+window.confirmBet = function(questionId, optionId, optionText) {
+  var q = STORE.questions.find(function(x) { return x.id === questionId; });
+  if (!q) return;
+  var stake = getStake(q);
+  if (STORE.currentUser.points < stake) { toast('Not enough tokens. You need ' + stake + '.', 'error'); return; }
+  showModal(
+    '<div class="text-center mb-5"><div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--info)]/10 border border-[var(--info)]/30 flex items-center justify-center"><i class="fa-solid fa-dice text-2xl text-[var(--info)]"></i></div><h3 class="font-display text-2xl mb-2">PLACE BET</h3><p class="text-sm text-[var(--muted)]">Stake <strong class="text-[var(--accent)]">' + stake + ' tokens</strong> on:</p><p class="font-semibold text-lg mt-2">' + esc(optionText) + '</p><p class="text-xs text-[var(--muted)] mt-3">If you win: you split the pot. If you lose: tokens are gone.</p></div>' +
+    '<div class="flex gap-3"><button onclick="closeModal()" class="btn-ghost flex-1">Cancel</button><button onclick="placeBet(\'' + questionId + '\',\'' + optionId + '\')" class="btn-primary flex-1">Stake ' + stake + ' Tokens</button></div>'
+  );
+}
+
+window.confirmDeleteQuestion = function(questionId) {
+  showModal(
+    '<div class="text-center mb-5"><div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--danger)]/10 border border-[var(--danger)]/30 flex items-center justify-center"><i class="fa-solid fa-trash text-2xl text-[var(--danger)]"></i></div><h3 class="font-display text-2xl mb-2">DELETE GAME?</h3><p class="text-sm text-[var(--muted)]">This permanently removes the game.</p></div>' +
+    '<div class="flex gap-3"><button onclick="closeModal()" class="btn-ghost flex-1">Cancel</button><button onclick="deleteQuestion(\'' + questionId + '\')" class="btn-danger flex-1">Delete</button></div>'
+  );
+}
+
+// ============== RENDER ==============
+function paint() {
+  var app = document.getElementById('app');
+  var html = '';
+  var role = sessionStorage.getItem('role');
+  
+  if (STORE.view === 'landing' && role === 'admin') STORE.view = 'admin';
+  if (STORE.view === 'landing' && role === 'user') {
+    var uid_ses = sessionStorage.getItem('uid');
+    var u = STORE.users.find(function(x) { return x.id === uid_ses; });
+    if (u) { STORE.currentUser = u; STORE.view = 'user'; }
+  }
+
+  if (STORE.view === 'connection-error') {
+    html = renderConnectionError();
+  } else if (STORE.view === 'landing') html = renderLanding();
+  else if (STORE.view === 'admin-login') html = renderAdminLogin();
+  else if (STORE.view === 'user-login') html = renderUserLogin();
+  else if (STORE.view === 'admin') html = renderAdminDashboard();
+  else if (STORE.view === 'user') html = renderUserDashboard();
+  
+  if(html) app.innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+function renderConnectionError() {
+  return '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;color:#f4f1ea;font-family:sans-serif;padding:20px;text-align:center;">' +
+    '<div style="color:#ef4444;font-size:48px;margin-bottom:20px;"><i class="fa-solid fa-triangle-exclamation"></i></div>' +
+    '<h1 style="font-size:24px;margin-bottom:10px;">Database Connection Failed</h1>' +
+    '<p style="color:#8a848e;max-width:500px;margin-bottom:20px;">Your browser cannot read or write to the Firebase Realtime Database.</p>' +
+    '<div style="background:#1a1a1c;padding:20px;border-radius:10px;border:1px solid #333;max-width:500px;text-align:left;margin-bottom:20px;">' +
+      '<p style="color:#ef4444;margin:0 0 10px 0;font-weight:bold;">Error: ' + esc(STORE.errorMessage) + '</p>' +
+      '<p style="color:#f4f1ea;margin:0 0 10px 0;font-weight:bold;">How to fix:</p>' +
+      '<p style="color:#8a848e;margin:0 0 10px 0;font-size:14px;">1. Go to Firebase Console -> Realtime Database -> Rules.</p>' +
+      '<p style="color:#8a848e;margin:0 0 10px 0;font-size:14px;">2. Set rules to allow read/write for testing:</p>' +
+      '<pre style="background:#000;padding:10px;border-radius:5px;color:#2ec973;overflow-x:auto;">{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}</pre>' +
+    '</div>' +
+    '<button onclick="location.reload()" style="margin-top:10px;padding:10px 20px;background:#f5c518;color:#131214;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Try Again</button>' +
+  '</div>';
+}
+
+function renderLanding() {
+  var activeCount = STORE.questions.filter(function(q){return q.status==='active';}).length;
+  var realPlayers = STORE.users.filter(function(u){return !u.isHouse;}).length;
+  return '' +
+    '<div class="min-h-screen flex flex-col">' +
+      '<header class="px-6 md:px-12 py-6 flex items-center justify-between">' +
+        '<div class="flex items-center gap-3">' +
+          '<div class="w-10 h-10 rounded-lg glass flex items-center justify-center text-xl text-[var(--accent)]"><i class="fa-solid fa-dice-d20"></i></div>' +
+          '<div><div class="font-display text-2xl tracking-wider">LUDO ROYALE</div><div class="text-[10px] text-[var(--muted)] uppercase tracking-[0.3em]">Team Parlor</div></div>' +
+        '</div>' +
+        '<div class="hidden md:flex items-center gap-6 text-xs text-[var(--muted)] uppercase tracking-widest">' +
+          '<span class="flex items-center gap-2"><span class="live-dot"></span> Live</span>' +
+          '<span>' + activeCount + ' Open</span>' +
+          '<span>' + realPlayers + ' Players</span>' +
+        '</div>' +
+      '</header>' +
+      '<div class="flex-1 flex flex-col items-center justify-center px-6 py-12">' +
+        '<div class="text-center mb-12 max-w-3xl animate-in">' +
+          '<div class="inline-block mb-6 px-4 py-1.5 rounded-full glass text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Roll the dice · Win the pot</div>' +
+          '<h1 class="font-display text-6xl md:text-8xl lg:text-9xl leading-[0.9] mb-6">PLACE YOUR<br><span class="text-[var(--accent)]">BETS</span></h1>' +
+          '<p class="text-[var(--muted)] text-base md:text-lg max-w-xl mx-auto leading-relaxed">The team prediction parlor. Game Master posts matches, players stake tokens. Buy-in to enter, split the pot if you win.</p>' +
+        '</div>' +
+        '<div class="grid md:grid-cols-2 gap-6 md:gap-10 w-full max-w-3xl">' +
+          '<div class="ludo-card master animate-in" style="animation-delay:0.1s;" onclick="goTo(\'admin-login\')">' +
+            '<div class="center-icon"><i class="fa-solid fa-crown"></i></div>' +
+            '<div class="absolute bottom-0 left-0 right-0 p-6 text-center">' +
+              '<div class="text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] mb-1">Throne</div><div class="font-display text-3xl mb-2 text-[var(--danger)]">GAME MASTER</div><div class="text-xs text-[var(--muted)] mb-4">Manage roster, post games, declare winners.</div>' +
+              '<div class="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[var(--danger)] font-semibold">Enter Throne <i class="fa-solid fa-arrow-right text-[10px]"></i></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="ludo-card player animate-in" style="animation-delay:0.2s;" onclick="goTo(\'user-login\')">' +
+            '<div class="center-icon"><i class="fa-solid fa-dice"></i></div>' +
+            '<div class="absolute bottom-0 left-0 right-0 p-6 text-center">' +
+              '<div class="text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] mb-1">Board</div><div class="font-display text-3xl mb-2 text-[var(--info)]">PLAYER</div><div class="text-xs text-[var(--muted)] mb-4">Login, stake your tokens, back your color.</div>' +
+              '<div class="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[var(--info)]">Enter Board <i class="fa-solid fa-arrow-right text-[10px]"></i></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderAdminLogin() {
+  return '' +
+    '<div class="min-h-screen flex items-center justify-center p-6">' +
+      '<div class="w-full max-w-md animate-in">' +
+        '<button onclick="goTo(\'landing\')" class="btn-ghost mb-8"><i class="fa-solid fa-arrow-left mr-2"></i>Back</button>' +
+        '<div class="glass-strong rounded-2xl p-8">' +
+          '<div class="text-center mb-8">' +
+            '<div class="w-16 h-16 mx-auto mb-4 rounded-2xl glass flex items-center justify-center text-3xl text-[var(--danger)]"><i class="fa-solid fa-crown"></i></div>' +
+            '<h2 class="font-display text-4xl">GAME MASTER LOGIN</h2>' +
+          '</div>' +
+          '<form onsubmit="event.preventDefault(); loginAdmin(this.password.value);" class="space-y-4">' +
+            '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Password</label><input type="password" name="password" class="input" placeholder="••••••••" autofocus></div>' +
+            '<button type="submit" class="btn-primary w-full">Enter Throne</button>' +
+          '</form>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderUserLogin() {
+  return '' +
+    '<div class="min-h-screen flex items-center justify-center p-6">' +
+      '<div class="w-full max-w-md animate-in">' +
+        '<button onclick="goTo(\'landing\')" class="btn-ghost mb-8"><i class="fa-solid fa-arrow-left mr-2"></i>Back</button>' +
+        '<div class="glass-strong rounded-2xl p-8">' +
+          '<div class="text-center mb-8">' +
+            '<div class="w-16 h-16 mx-auto mb-4 rounded-2xl glass flex items-center justify-center text-3xl text-[var(--info)]"><i class="fa-solid fa-dice"></i></div>' +
+            '<h2 class="font-display text-4xl">PLAYER LOGIN</h2>' +
+            '<p class="text-sm text-[var(--muted)] mt-2">Enter your credentials to play.</p>' +
+          '</div>' +
+          '<form onsubmit="event.preventDefault(); loginUser(this.username.value, this.password.value);" class="space-y-4">' +
+            '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Username</label><input type="text" name="username" class="input" placeholder="Your username" autofocus></div>' +
+            '<div><label class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2 block">Password</label><input type="password" name="password" class="input" placeholder="Your password"></div>' +
+            '<button type="submit" class="btn-primary w-full">Enter Board</button>' +
+          '</form>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderAdminDashboard() {
+  var active = STORE.questions.filter(function(q){return q.status==='active';});
+  var closed = STORE.questions.filter(function(q){return q.status==='closed';});
+  var resolved = STORE.questions.filter(function(q){return q.status==='resolved';});
+  
+  var tabQuestions;
+  if (STORE.adminTab === 'active') tabQuestions = active;
+  else if (STORE.adminTab === 'closed') tabQuestions = closed;
+  else if (STORE.adminTab === 'resolved') tabQuestions = resolved;
+  else if (STORE.adminTab === 'players') tabQuestions = [];
+  else tabQuestions = STORE.questions;
+
+  var mainContent = '';
+  if (STORE.adminTab === 'players') {
+    mainContent = renderPlayerManagement();
+  } else {
+    if (tabQuestions.length === 0) {
+      mainContent = '<div class="glass rounded-2xl p-12 text-center"><div class="text-5xl text-[var(--muted)] mb-4 opacity-30"><i class="fa-solid fa-dice"></i></div><div class="font-display text-2xl mb-2 text-[var(--muted)]">No games here</div><button onclick="openCreateQuestion()" class="btn-primary mt-4"><i class="fa-solid fa-plus mr-2"></i>Post a Game</button></div>';
+    } else {
+      tabQuestions.forEach(function(q) { mainContent += renderAdminQuestion(q); });
+    }
+  }
+
+  var realPlayers = STORE.users.filter(function(u){return !u.isHouse;}).length;
+
+  return '' +
+    '<div class="min-h-screen">' +
+      '<header class="glass-strong border-b border-white/10 sticky top-0 z-30">' +
+        '<div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">' +
+          '<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg glass flex items-center justify-center text-xl text-[var(--danger)]"><i class="fa-solid fa-crown"></i></div><div><div class="font-display text-xl tracking-wider">MASTER THRONE</div><div class="text-[10px] text-[var(--muted)] uppercase tracking-[0.25em]">Logged in as Game Master</div></div></div>' +
+          '<div class="flex items-center gap-3"><button onclick="openCreateQuestion()" class="btn-primary"><i class="fa-solid fa-plus mr-2"></i>New Game</button><button onclick="logout()" class="btn-ghost">Exit</button></div>' +
+        '</div>' +
+      '</header>' +
+      '<div class="max-w-7xl mx-auto px-4 md:px-8 py-8">' +
+        '<div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">' +
+          '<button class="tab-btn ' + (STORE.adminTab==='active'?'active':'') + '" onclick="setAdminTab(\'active\')">Active (' + active.length + ')</button>' +
+          '<button class="tab-btn ' + (STORE.adminTab==='closed'?'active':'') + '" onclick="setAdminTab(\'closed\')">Closed (' + closed.length + ')</button>' +
+          '<button class="tab-btn ' + (STORE.adminTab==='resolved'?'active':'') + '" onclick="setAdminTab(\'resolved\')">Resolved (' + resolved.length + ')</button>' +
+          '<button class="tab-btn ' + (STORE.adminTab==='all'?'active':'') + '" onclick="setAdminTab(\'all\')">All</button>' +
+          '<button class="tab-btn ' + (STORE.adminTab==='players'?'active':'') + '" onclick="setAdminTab(\'players\')" style="color:#2ec973;border-color:rgba(46,201,115,0.3);">Roster (' + realPlayers + ')</button>' +
+        '</div>' +
+        '<div class="space-y-4">' + mainContent + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderPlayerManagement() {
+  var rows = '';
+  var realPlayers = STORE.users.filter(function(u){return !u.isHouse;});
+  
+  if (realPlayers.length === 0) {
+    return '<div class="glass rounded-2xl p-12 text-center"><div class="text-5xl text-[var(--muted)] mb-4 opacity-30"><i class="fa-solid fa-users"></i></div><div class="font-display text-2xl mb-2 text-[var(--muted)]">No players signed</div><button onclick="openAddPlayer()" class="btn-primary mt-4"><i class="fa-solid fa-user-plus mr-2"></i>Add Player</button></div>';
+  }
+  
+  realPlayers.slice().sort(function(a,b){return b.points-a.points;}).forEach(function(u) {
+    rows += '' +
+      '<div class="glass rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">' +
+        '<div class="flex items-center gap-4">' +
+          '<div class="w-12 h-12 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/30 flex items-center justify-center font-display text-xl text-[var(--accent)]">' + esc(u.name.charAt(0).toUpperCase()) + '</div>' +
+          '<div><div class="font-bold text-lg">' + esc(u.name) + '</div><div class="text-xs text-[var(--muted)]">Joined ' + formatTime(u.joinedAt) + '</div></div>' +
+        '</div>' +
+        '<div class="text-right mr-4"><div class="text-[10px] uppercase tracking-widest text-[var(--muted)]">Balance</div><div class="font-display text-2xl text-[var(--accent)]">' + formatPoints(u.points) + ' <span class="text-xs text-[var(--muted)]">tokens</span></div></div>' +
+        '<div class="flex gap-2">' +
+          '<button onclick="openAdjustPoints(\'' + u.id + '\')" class="btn-ghost text-xs"><i class="fa-solid fa-coins mr-1"></i>Tokens</button>' +
+          '<button onclick="confirmDeletePlayer(\'' + u.id + '\')" class="btn-danger text-xs"><i class="fa-solid fa-trash"></i></button>' +
+        '</div>' +
+      '</div>';
+  });
+
+  return '<div class="flex justify-between items-center mb-4"><div class="font-display text-2xl">ROSTER LIST</div><button onclick="openAddPlayer()" class="btn-success"><i class="fa-solid fa-user-plus mr-2"></i>Add Player</button></div>' + rows;
+}
+
+function renderAdminQuestion(q) {
+  var totalBets = q.bets ? Object.keys(q.bets).length : 0;
+  var stake = getStake(q);
+  var optionsHtml = '';
+  var payout = getPayout(q);
+  q.options.forEach(function(opt) {
+    var bets = q.bets ? Object.values(q.bets).filter(function(b){return b.optionId===opt.id;}) : [];
+    var pct = totalBets > 0 ? (bets.length / totalBets * 100) : 0;
+    var isWinner = q.winnerOptionId === opt.id;
+    var cls = isWinner ? 'option-card winner' : 'option-card';
+    optionsHtml += '<div class="' + cls + '">' +
+      '<div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2">' + (isWinner ? '<i class="fa-solid fa-crown text-[#f5c518]"></i>' : '') + '<span class="font-semibold text-sm">' + esc(opt.text) + '</span></div><span class="text-xs text-[var(--muted)] font-mono">' + bets.length + ' bet' + (bets.length!==1?'s':'') + '</span></div>' +
+      '<div class="progress-bar mb-2"><div class="progress-fill" style="width:' + pct + '%;"></div></div>' +
+      '<div class="flex items-center justify-between text-[11px] text-[var(--muted)]"><span>' + pct.toFixed(0) + '%</span><span>' + formatPoints(bets.reduce(function(s,b){return s+b.amount;},0)) + ' tokens</span></div>' +
+    '</div>';
+  });
+
+  var betsHtml = '';
+  if (totalBets > 0) {
+    var betRows = '';
+    Object.values(q.bets).slice().reverse().forEach(function(b) {
+      var isWin = q.winnerOptionId && b.optionId === q.winnerOptionId;
+      var colorClass = isWin ? 'text-[var(--accent-2)]' : 'text-[var(--danger)]';
+      var label = isWin ? '+' + formatPoints(payout) : '-' + formatPoints(b.amount);
+      betRows += '<div class="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-white/5"><span class="font-semibold">' + esc(b.userName) + '</span><span class="font-mono ' + colorClass + '">' + label + ' tokens</span></div>';
+    });
+    betsHtml = '<details class="mb-4 group"><summary class="cursor-pointer text-xs uppercase tracking-widest text-[var(--muted)] hover:text-[var(--fg)] flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] group-open:rotate-90 transition"></i>View ' + totalBets + ' bet' + (totalBets!==1?'s':'') + '</summary><div class="mt-3 space-y-1 max-h-40 overflow-y-auto">' + betRows + '</div></details>';
+  }
+
+  var actionsHtml = '';
+  if (q.status === 'active') {
+    actionsHtml = '<button onclick="openUpdateStake(\'' + q.id + '\')" class="btn-ghost"><i class="fa-solid fa-tag mr-2"></i>Update Stake</button><button onclick="closeBetting(\'' + q.id + '\')" class="btn-ghost"><i class="fa-solid fa-stop mr-2"></i>Close Bets</button><button onclick="openDeclareWinner(\'' + q.id + '\')" class="btn-success"><i class="fa-solid fa-crown mr-2"></i>Declare Winner</button>';
+  } else if (q.status === 'closed') {
+    actionsHtml = '<button onclick="openUpdateStake(\'' + q.id + '\')" class="btn-ghost"><i class="fa-solid fa-tag mr-2"></i>Update Stake</button><button onclick="reopenBetting(\'' + q.id + '\')" class="btn-ghost"><i class="fa-solid fa-play mr-2"></i>Reopen</button><button onclick="openDeclareWinner(\'' + q.id + '\')" class="btn-success"><i class="fa-solid fa-crown mr-2"></i>Declare Winner</button>';
+  } else if (q.status === 'resolved') {
+    var winText = payout > 0 ? 'Each winner got ' + formatPoints(payout) + ' tokens' : 'Pot went to the House';
+    actionsHtml = '<div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--accent-2)]/10 border border-[var(--accent-2)]/30"><i class="fa-solid fa-trophy text-[var(--accent-2)]"></i><span class="text-sm">Game Over · ' + winText + '</span></div><button onclick="confirmDeleteQuestion(\'' + q.id + '\')" class="btn-ghost ml-auto"><i class="fa-solid fa-trash mr-2"></i>Delete</button>';
+  }
+
+  return '<div class="glass rounded-2xl p-5 md:p-6 animate-in">' +
+    '<div class="flex flex-wrap items-start justify-between gap-4 mb-4">' +
+      '<div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-2"><span class="status-badge status-' + q.status + '">' + (q.status === 'active' ? '<span class="live-dot"></span>' : '') + q.status + '</span><span class="text-[11px] text-[var(--muted)] uppercase tracking-widest">Posted ' + formatTime(q.createdAt) + '</span></div><h3 class="font-display text-xl md:text-2xl mb-1">' + esc(q.title) + '</h3>' + (q.description ? '<p class="text-sm text-[var(--muted)]">' + esc(q.description) + '</p>' : '') + '</div>' +
+      '<div class="text-right"><div class="text-[10px] uppercase tracking-widest text-[var(--muted)]">Entry Stake</div><div class="font-display text-2xl text-[var(--accent)]">' + stake + ' <span class="text-xs text-[var(--muted)]">tokens</span></div></div>' +
+    '</div>' +
+    '<div class="grid md:grid-cols-2 gap-3 mb-4">' + optionsHtml + '</div>' +
+    betsHtml +
+    '<div class="flex flex-wrap gap-2 pt-4 border-t border-white/5">' + actionsHtml + '</div>' +
+  '</div>';
+}
+
+function renderUserDashboard() {
+  var u = STORE.currentUser;
+  if (!u) return '';
+
+  var myBets = [];
+  STORE.questions.forEach(function(q) {
+    if (q.bets) {
+      Object.values(q.bets).forEach(function(b) {
+        if (b.userId === u.id) myBets.push({ bet: b, question: q });
+      });
+    }
+  });
+
+  var wins = myBets.filter(function(mb){return mb.question.winnerOptionId === mb.bet.optionId;}).length;
+  var pending = myBets.filter(function(mb){return !mb.question.winnerOptionId;}).length;
+
+  var activeQs = STORE.questions.filter(function(q){return q.status !== 'resolved';});
+  var resolvedQs = STORE.questions.filter(function(q){return q.status === 'resolved';});
+  var tabQs = STORE.userTab === 'active' ? activeQs : resolvedQs;
+
+  var questionsHtml = '';
+  if (tabQs.length === 0) {
+    questionsHtml = '<div class="glass rounded-2xl p-12 text-center"><div class="text-5xl text-[var(--muted)] mb-4 opacity-30"><i class="fa-solid fa-dice"></i></div><div class="font-display text-2xl mb-2 text-[var(--muted)]">No games to bet on</div></div>';
+  } else {
+    tabQs.forEach(function(q) { questionsHtml += renderUserQuestion(q, u); });
+  }
+
+  return '' +
+    '<div class="min-h-screen">' +
+      '<header class="glass-strong border-b border-white/10 sticky top-0 z-30">' +
+        '<div class="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">' +
+          '<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg glass flex items-center justify-center text-xl text-[var(--info)]"><i class="fa-solid fa-dice"></i></div><div><div class="font-display text-xl tracking-wider">PLAYER BOARD</div><div class="text-[10px] text-[var(--muted)] uppercase tracking-[0.25em]">Playing as ' + esc(u.name) + '</div></div></div>' +
+          '<div class="flex items-center gap-4"><div class="text-right"><div class="text-[10px] uppercase tracking-widest text-[var(--muted)]">Balance</div><div class="font-display text-2xl text-[var(--accent)]">' + formatPoints(u.points) + ' <span class="text-xs text-[var(--muted)]">tokens</span></div></div><button onclick="logout()" class="btn-ghost">Exit</button></div>' +
+        '</div>' +
+      '</header>' +
+      '<div class="max-w-6xl mx-auto px-4 md:px-8 py-8">' +
+        '<div class="grid grid-cols-3 gap-4 mb-8">' +
+          '<div class="glass rounded-2xl p-5"><div class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2">Balance</div><div class="stat-num text-[var(--accent)]">' + formatPoints(u.points) + '</div></div>' +
+          '<div class="glass rounded-2xl p-5"><div class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2">Wins</div><div class="stat-num" style="color:#2ec973;">' + wins + '</div></div>' +
+          '<div class="glass rounded-2xl p-5"><div class="text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2">Pending</div><div class="stat-num text-[var(--muted)]">' + pending + '</div></div>' +
+        '</div>' +
+        '<div class="flex items-center gap-2 mb-6">' +
+          '<button class="tab-btn ' + (STORE.userTab==='active'?'active':'') + '" onclick="setUserTab(\'active\')">Open (' + activeQs.length + ')</button>' +
+          '<button class="tab-btn ' + (STORE.userTab==='resolved'?'active':'') + '" onclick="setUserTab(\'resolved\')">Resolved (' + resolvedQs.length + ')</button>' +
+        '</div>' +
+        '<div class="space-y-4">' + questionsHtml + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderUserQuestion(q, user) {
+  var myBet = null;
+  if (q.bets) {
+    for (var i = 0; i < Object.keys(q.bets).length; i++) {
+      var key = Object.keys(q.bets)[i];
+      if (q.bets[key].userId === user.id) { myBet = q.bets[key]; break; }
+    }
+  }
+  var totalBets = q.bets ? Object.keys(q.bets).length : 0;
+  var payout = getPayout(q);
+  var stake = getStake(q);
+
+  var optionsHtml = '';
+  q.options.forEach(function(opt) {
+    var bets = q.bets ? Object.values(q.bets).filter(function(b){return b.optionId===opt.id;}) : [];
+    var pct = totalBets > 0 ? (bets.length / totalBets * 100) : 0;
+    var isMyBet = myBet && myBet.optionId === opt.id;
+    var isWinner = q.winnerOptionId === opt.id;
+    var isLoser = q.winnerOptionId && q.winnerOptionId !== opt.id && isMyBet;
+
+    var cls = 'option-card';
+    if (isWinner) cls += ' winner';
+    else if (isLoser) cls += ' loser';
+    else if (isMyBet) cls += ' bet-placed';
+
+    var icon = isWinner ? '<i class="fa-solid fa-crown text-[#f5c518]"></i>' : isLoser ? '<i class="fa-solid fa-xmark text-[var(--danger)]"></i>' : isMyBet ? '<i class="fa-solid fa-check text-[var(--info)]"></i>' : '';
+    var onClick = (!myBet && q.status === 'active') ? ' onclick="confirmBet(\'' + q.id + '\',\'' + opt.id + '\',\'' + esc(opt.text) + '\')"' : '';
+    var betInfo = '';
+    if (isMyBet) {
+      var resultLabel = isWinner ? '<span class="text-[var(--accent-2)] font-bold">+' + formatPoints(payout) + ' tokens won</span>' : isLoser ? '<span class="text-[var(--danger)] font-bold">-' + formatPoints(myBet.amount) + ' tokens lost</span>' : '<span class="text-[var(--muted)]">awaiting result</span>';
+      betInfo = '<div class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs"><span class="text-[var(--info)] uppercase tracking-widest font-semibold">Your pick</span>' + resultLabel + '</div>';
+    } else if (q.status === 'active' && !myBet) {
+      betInfo = '<div class="mt-3 pt-3 border-t border-white/10 text-xs text-[var(--muted)] uppercase tracking-widest text-center">Tap to bet · Costs ' + stake + ' tokens</div>';
+    }
+
+    optionsHtml += '<div class="' + cls + '"' + onClick + '>' +
+      '<div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2 min-w-0">' + icon + '<span class="font-semibold text-sm truncate">' + esc(opt.text) + '</span></div><span class="text-xs text-[var(--muted)] font-mono whitespace-nowrap">' + bets.length + ' bet' + (bets.length!==1?'s':'') + '</span></div>' +
+      '<div class="progress-bar mb-2"><div class="progress-fill" style="width:' + pct + '%;"></div></div>' +
+      '<div class="flex items-center justify-between text-[11px] text-[var(--muted)]"><span>' + pct.toFixed(0) + '%</span><span>' + formatPoints(bets.reduce(function(s,b){return s+b.amount;},0)) + ' tokens</span></div>' +
+      betInfo +
+    '</div>';
+  });
+
+  var statusLabel = q.status === 'active' ? 'Open for bets' : q.status === 'closed' ? 'Bets Closed · Awaiting result' : 'Game Over';
+
+  return '<div class="glass rounded-2xl p-5 md:p-6 animate-in">' +
+    '<div class="flex flex-wrap items-start justify-between gap-4 mb-4">' +
+      '<div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-2"><span class="status-badge status-' + q.status + '">' + (q.status === 'active' ? '<span class="live-dot"></span>' : '') + statusLabel + '</span><span class="text-[11px] text-[var(--muted)] uppercase tracking-widest">' + totalBets + ' bets</span></div><h3 class="font-display text-xl md:text-2xl mb-1">' + esc(q.title) + '</h3>' + (q.description ? '<p class="text-sm text-[var(--muted)]">' + esc(q.description) + '</p>' : '') + '</div>' +
+      '<div class="text-right"><div class="text-[10px] uppercase tracking-widest text-[var(--muted)]">Stake</div><div class="font-display text-2xl text-[var(--accent)]">' + stake + ' <span class="text-xs text-[var(--muted)]">tokens</span></div><div class="text-[10px] text-[var(--muted)]">split pot</div></div>' +
+    '</div>' +
+    '<div class="grid md:grid-cols-2 gap-3">' + optionsHtml + '</div>' +
+  '</div>';
+}
+
+// ============== BACKGROUND CANVAS ==============
+function initBackground() {
+  var canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var particles = []; var w, h;
+  function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  
+  function spawn() {
+    particles = [];
+    var count = Math.min(20, Math.floor(w * h / 80000));
+    var icons = ['🎲', '🔴', '🟢', '🟡', '🔵'];
+    for (var i = 0; i < count; i++) {
+      particles.push({ 
+        x: Math.random() * w, 
+        y: Math.random() * h, 
+        size: 30 + Math.random() * 40, 
+        speed: 0.1 + Math.random() * 0.3, 
+        opacity: 0.03 + Math.random() * 0.04, 
+        rotation: Math.random() * Math.PI * 2, 
+        rotSpeed: (Math.random() - 0.5) * 0.008, 
+        drift: (Math.random() - 0.5) * 0.2,
+        icon: icons[Math.floor(Math.random() * icons.length)]
+      });
+    }
+  }
+  spawn(); window.addEventListener('resize', spawn);
+  
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(function(p) {
+      p.y -= p.speed; p.x += p.drift; p.rotation += p.rotSpeed;
+      if (p.y < -60) { p.y = h + 60; p.x = Math.random() * w; }
+      if (p.x < -60) p.x = w + 60; if (p.x > w + 60) p.x = -60;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
+      ctx.fillStyle = 'rgba(255, 255, 255, ' + p.opacity + ')';
+      ctx.font = p.size + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(p.icon, 0, 0); ctx.restore();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ============== INIT ==============
+initBackground();
+paint();
+
+</script>
+</body>
+</html>
